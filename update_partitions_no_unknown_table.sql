@@ -126,7 +126,7 @@ createTrigger:=createTrigger || '
             RAISE EXCEPTION ''Error en trigger'';
             RETURN NULL;
     END;
-    RETURN NEW;
+    RETURN NULL;
     END;
     $$
     LANGUAGE plpgsql;';
