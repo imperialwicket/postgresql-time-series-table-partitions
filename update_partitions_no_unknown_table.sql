@@ -128,7 +128,7 @@ createTrigger := 'CREATE OR REPLACE FUNCTION '||schema_name||'.trf_'||primary_ta
 	    startTime := to_timestamp(formatDate, '''||dateFormat||''');
             intervalTime  := startTime + '''||spacing||'''::interval;  
 
-            createTableStatment := ''CREATE TABLE '||schema_name||'.''||fullTablename||'' (
+            createTableStatment := ''CREATE TABLE IF NOT EXISTS '||schema_name||'.''||fullTablename||'' (
                   CHECK ('||replace(date_expression, '''', '''''')||' >= ''''''||startTime||'''''' AND '||replace(date_expression, '''', '''''')||' < ''''''||intervalTime||'''''')
                   ) INHERITS ('||schema_name||'.'||primary_table_name||')'';    
             EXECUTE createTableStatment;
