@@ -78,7 +78,7 @@ WHILE (startTime <= endTime) LOOP
      EXECUTE createStmts;
     
      -- Set the table owner     
-     createStmts := 'ALTER TABLE '||schema_name||'.'||fullTablename||' OWNER TO '||tableOwner||';';
+     createStmts := 'ALTER TABLE '||schema_name||'.'||fullTablename||' OWNER TO "'||tableOwner||'";';
      EXECUTE createStmts;     
   
      -- Create an index on the timestamp     
@@ -133,7 +133,7 @@ createTrigger := 'CREATE OR REPLACE FUNCTION '||schema_name||'.trf_'||primary_ta
                   ) INHERITS ('||schema_name||'.'||primary_table_name||')'';    
             EXECUTE createTableStatment;
 
-            createTableStatment := ''ALTER TABLE '||schema_name||'.''||fullTablename||'' OWNER TO '||tableOwner||';'';
+            createTableStatment := ''ALTER TABLE '||schema_name||'.''||fullTablename||'' OWNER TO "'||tableOwner||'";'';
             EXECUTE createTableStatment;
 
             createTableStatment := ''CREATE INDEX idx_''||fullTablename||''_'||dateColumnName||' ON '||schema_name||'.''||fullTablename||'' ('||replace(date_expression, '''', '''''')||');'';
