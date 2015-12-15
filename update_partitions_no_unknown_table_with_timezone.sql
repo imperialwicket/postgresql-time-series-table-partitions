@@ -109,8 +109,8 @@ WHILE (start_time <= end_time) LOOP
 			insert_stmt := 
 					'INSERT INTO ' || my_schema_name || '.' || full_table_name || ' (
 						SELECT * FROM ' || my_schema_name || '.' || primary_table_name || ' 
-						WHERE TIMESTAMP ' || date_expression || ' AT TIME ZONE ''' || timezone || ''' >= ''' || start_time || ''' 
-						AND TIMESTAMP' || date_expression || ' AT TIME ZONE ''' || timezone || ''' < ''' || interval_time || '''
+						WHERE ' || date_expression || ' AT TIME ZONE ''' || timezone || ''' >= ''' || start_time || ''' 
+						AND ' || date_expression || ' AT TIME ZONE ''' || timezone || ''' < ''' || interval_time || '''
 					);';
 			EXECUTE insert_stmt ;
 		END IF;
