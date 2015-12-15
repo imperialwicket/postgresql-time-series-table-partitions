@@ -85,10 +85,11 @@ WHILE (start_time <= end_time) LOOP
 
 	-- The table creation sql statement
 	IF NOT EXISTS (SELECT	*	FROM information_schema.tables WHERE table_schema = my_schema_name	AND TABLE_NAME = full_table_name) THEN
-		create_stmt := 'CREATE TABLE ' || my_schema_name || '.' || full_table_name || ' (
-								CHECK (' || date_expression || ' >= TIMESTAMP ''' || start_time || ''' AT TIME ZONE ''' || timezone || ''' 
-								AND ' || date_expression || ' < TIMESTAMP ''' || interval_time || ''' AT TIME ZONE ''' || timezone || ''')
-								) INHERITS (' || my_schema_name || '.' || primary_table_name || ')';
+		create_stmt := 
+				'CREATE TABLE ' || my_schema_name || '.' || full_table_name || ' (
+					CHECK (' || date_expression || ' >= TIMESTAMP ''' || start_time || ''' AT TIME ZONE ''' || timezone || ''' 
+					AND ' || date_expression || ' < TIMESTAMP ''' || interval_time || ''' AT TIME ZONE ''' || timezone || ''')
+				) INHERITS (' || my_schema_name || '.' || primary_table_name || ')';
 		
 		-- Run the table creation
 		EXECUTE create_stmt;
@@ -105,17 +106,18 @@ WHILE (start_time <= end_time) LOOP
 		--if fill_child_tables is true then we fill the child table with the parent's table data that satisfies the child's table check constraint
 		IF (fill_child_tables) THEN
 			RAISE NOTICE 'Filling child table %.%', my_schema_name, full_table_name;
-			insert_stmt := 'INSERT INTO ' || my_schema_name || '.' || full_table_name || ' (
-									SELECT * FROM ' || my_schema_name || '.' || primary_table_name || ' 
-									WHERE TIMESTAMP ' || date_expression || ' AT TIME ZONE ''' || timezone || ''' >= ''' || start_time || ''' 
-									AND TIMESTAMP' || date_expression || ' AT TIME ZONE ''' || timezone || ''' < ''' || interval_time || '''
-								);';
+			insert_stmt := 
+					'INSERT INTO ' || my_schema_name || '.' || full_table_name || ' (
+						SELECT * FROM ' || my_schema_name || '.' || primary_table_name || ' 
+						WHERE TIMESTAMP ' || date_expression || ' AT TIME ZONE ''' || timezone || ''' >= ''' || start_time || ''' 
+						AND TIMESTAMP' || date_expression || ' AT TIME ZONE ''' || timezone || ''' < ''' || interval_time || '''
+					);';
 			EXECUTE insert_stmt ;
-		END	IF;
+		END IF;
 
 		-- Track how many tables we are creating (should likely be 1, except for initial run and backfilling efforts).
 		created_tables := created_tables + 1;
-	END	IF;
+	END IF;
 
 	start_time := interval_time;
 
@@ -133,7 +135,7 @@ create_trigger :=
 		DECLARE insertStatment text;
 		DECLARE createTableStatment text;
 		DECLARE formatDate text;
-		
+	
 		BEGIN
 
 			SELECT to_char(' || date_expression || ',''' || date_format || ''') INTO formatDate FROM (SELECT NEW.*) AS t;
@@ -184,10 +186,11 @@ EXECUTE create_trigger ;
 -- Create the trigger that uses the trigger function, if it isn't already created
 my_trigger_name := 'tr_' || primary_table_name || '_insert_trigger';
 
-IF NOT EXISTS (SELECT	*	FROM information_schema.triggers WHERE TRIGGER_NAME = my_trigger_name) THEN
-	create_trigger := 'CREATE TRIGGER tr_' || primary_table_name || '_insert_trigger
-                  BEFORE INSERT ON ' || my_schema_name || '.' || primary_table_name || ' 
-                  FOR EACH ROW EXECUTE PROCEDURE ' || my_schema_name || '.trf_' || primary_table_name || '_insert_trigger_function();';
+IF NOT EXISTS (SELECT * FROM information_schema.triggers WHERE TRIGGER_NAME = my_trigger_name) THEN
+	create_trigger := 
+			'CREATE TRIGGER tr_' || primary_table_name || '_insert_trigger 
+			BEFORE INSERT ON ' || my_schema_name || '.' || primary_table_name || ' 
+			FOR EACH ROW EXECUTE PROCEDURE ' || my_schema_name || '.trf_' || primary_table_name || '_insert_trigger_function();';
 	EXECUTE create_trigger;
 END IF;
 
@@ -227,13 +230,27 @@ COMMENT ON FUNCTION public.create_date_partitions_for_table (
 ) IS 
 'The function is created in the public schema and is owned by user postgres.
 The function takes params:
-begin_time          	- Type: timestamp - Desc: time of your earliest data. This allows for backfilling and for reducing trigger function overhead by avoiding legacy date logic.
-timezone							- Type: text			- Desc: time zone for check constraints. Available time zones in pg_timezone_names table.
-primary_table  				- Type: regclass  - Desc: name of the parent table. This is used to generate monthly tables ([primary_table_name]_YYYYMM) and an unknown table ([primary_table_name]_unknowns). It is also used in the trigger and trigger function names.
-date_expression       - Type: text      - Desc: an expression that returns a date is used for check constraints and insert trigger function.
-spacing               - Type: interval  - Desc: an interval which determines the timespan for child tables.
-fill_child_tables   	- Type: boolean   - Desc: if you want to load data from parent table to each child tables.
-truncate_parent_table - Type: boolean   - Desc: if you want to delete table of the parent table.
+begin_time
+	- Type: timestamp
+	- Desc: time of your earliest data. This allows for backfilling and for reducing trigger function overhead by avoiding legacy date logic.
+timezone
+	- Type: text
+	- Desc: time zone for check constraints. Available time zones in pg_timezone_names table.
+primary_table
+	- Type: regclass
+	- Desc: name of the parent table. This is used to generate monthly tables ([primary_table_name]_YYYYMM) and an unknown table ([primary_table_name]_unknowns). It is also used in the trigger and trigger function names.
+date_expression
+	- Type: text
+	- Desc: an expression that returns a date is used for check constraints and insert trigger function.
+spacing
+	- Type: interval
+	- Desc: an interval which determines the timespan for child tables.
+fill_child_tables
+	- Type: boolean
+	- Desc: if you want to load data from parent table to each child tables.
+truncate_parent_table
+	- Type: boolean
+	- Desc: if you want to delete table of the parent table.
 
 Considerations:
 
